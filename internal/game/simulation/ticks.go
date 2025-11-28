@@ -11,7 +11,7 @@ type GameTickHistory struct {
 	Tick int64
 }
 
-func (c *GameSimulation) ResolveMovement() []uuid.UUID {
+func (c *Simulation) resolveMovement() []uuid.UUID {
 	var moved []uuid.UUID
 
 	// Compute movement vectors
@@ -47,13 +47,13 @@ func (c *GameSimulation) ResolveMovement() []uuid.UUID {
 }
 
 // computeDisplacement returns integer movement deltas from facing (degrees) and speed.
-func (c *GameSimulation) computeDisplacement(facing int64, speed float64) (dx, dy int64) {
+func (c *Simulation) computeDisplacement(facing int64, speed float64) (dx, dy int64) {
 	angleRad := float64(facing) * math.Pi / 180.0
 	return int64(math.Cos(angleRad) * speed), int64(math.Sin(angleRad) * speed)
 }
 
 // wouldCollide checks if moving obj (by its current DX/DY) would collide with others.
-func (c *GameSimulation) wouldCollide(id uuid.UUID, obj *objects.Object) bool {
+func (c *Simulation) wouldCollide(id uuid.UUID, obj *objects.Object) bool {
 	futureX0 := obj.X0 + obj.DX
 	futureY0 := obj.Y0 + obj.DY
 	futureX1 := obj.X1 + obj.DX
@@ -75,17 +75,18 @@ func (c *GameSimulation) wouldCollide(id uuid.UUID, obj *objects.Object) bool {
 	return false
 }
 
-func (c *GameSimulation) Tick() {
+func (c *Simulation) Tick() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	c.resolveMovement()
 	for _, mu := range c.mutations {
-		c.ResolveMutation(mu)
+		c.resolveMutation(mu)
 	}
 	c.mutations = c.mutations[:0]
 	c.Ticks++
 }
 
-func (c *GameSimulation) AppendMutations(mutations []MutationData) {
+func (c *Simulation) AppendMutations(mutations []MutationData) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.mutations = append(c.mutations, mutations...)

@@ -23,26 +23,26 @@ type MutationData struct {
 	Type    MutationType
 }
 
-func (gs *GameSimulation) ResolveMutation(mu MutationData) {
+func (gs *Simulation) resolveMutation(mu MutationData) {
 	switch mu.Type {
 	case MoveMutation:
-		gs.MoveMutation(mu.ActorID)
+		gs.moveMutation(mu.ActorID)
 	case StateMutation:
-		gs.StateMutation(mu.ActorID)
+		gs.stateMutation(mu.ActorID)
 	case TransitionMutation:
-		gs.NextStateMutation(mu.ActorID, mu.State, mu.D)
+		gs.nextStateMutation(mu.ActorID, mu.State, mu.D)
 	case DeleteObjectMutation:
-		gs.DeleteObject(mu.ActorID)
+		gs.deleteObject(mu.ActorID)
 	case DeleteUnitMutation:
-		gs.DeleteUnit(mu.ActorID)
+		gs.deleteUnit(mu.ActorID)
 	case HPMutation:
-		gs.HPMutation(mu.ActorID, mu.D)
+		gs.hpMutation(mu.ActorID, mu.D)
 	default:
 		// Optionally log or handle unknown mutation types
 	}
 }
 
-func (gs *GameSimulation) MoveMutation(actorID uuid.UUID) {
+func (gs *Simulation) moveMutation(actorID uuid.UUID) {
 	actor := gs.state.Objects[actorID]
 	actor.X0 += actor.DX
 	actor.X1 += actor.DX
@@ -50,7 +50,7 @@ func (gs *GameSimulation) MoveMutation(actorID uuid.UUID) {
 	actor.Y1 += actor.DY
 }
 
-func (gs *GameSimulation) StateMutation(actorID uuid.UUID) {
+func (gs *Simulation) stateMutation(actorID uuid.UUID) {
 	actor := gs.state.Units[actorID]
 	if actor.State.TicksLeft == 0 {
 		actor.State.Current = actor.State.Next
@@ -59,23 +59,23 @@ func (gs *GameSimulation) StateMutation(actorID uuid.UUID) {
 	}
 }
 
-func (gs *GameSimulation) NextStateMutation(actorID uuid.UUID, state units.StateKey, ticksLeft int64) {
+func (gs *Simulation) nextStateMutation(actorID uuid.UUID, state units.StateKey, ticksLeft int64) {
 	actor := gs.state.Units[actorID]
 	actor.State.Next = state
 	actor.State.TicksLeft = ticksLeft
 }
 
-func (gs *GameSimulation) DeleteObject(objectID uuid.UUID) {
+func (gs *Simulation) deleteObject(objectID uuid.UUID) {
 	delete(gs.state.Objects, objectID)
 }
 
-func (gs *GameSimulation) DeleteUnit(unitID uuid.UUID) {
+func (gs *Simulation) deleteUnit(unitID uuid.UUID) {
 	unit := gs.state.Units[unitID]
-	gs.DeleteObject(unit.ObjectID)
+	gs.deleteObject(unit.ObjectID)
 	delete(gs.state.Units, unitID)
 }
 
-func (gs *GameSimulation) HPMutation(actorID uuid.UUID, d int64) {
+func (gs *Simulation) hpMutation(actorID uuid.UUID, d int64) {
 	actor := gs.state.Units[actorID]
 	actor.HP += d
 	if actor.HP <= 0 {

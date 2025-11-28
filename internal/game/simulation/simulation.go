@@ -15,11 +15,17 @@ type SimulationState struct {
 	Objects    map[uuid.UUID]objects.Object
 	Units      map[uuid.UUID]units.Unit
 }
-type GameSimulation struct {
+type Simulation struct {
 	state          SimulationState
 	mutations      []MutationData
 	history        []GameTickHistory
 	Ticks          int64
 	CollisionsMesh *physics.CollisionsMesh
 	mu             sync.Mutex
+}
+
+type GameSimulation interface {
+	Tick()
+	AppendMutations(mutations []MutationData)
+	State() *SimulationState
 }
